@@ -6,7 +6,7 @@ public class HashTable<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TV
     where TKey : IEquatable<TKey> {
     // Fields
     private readonly int _capacityMultiplier;
-    private LinkedList<KeyValuePair<TKey, TValue>>[] _buckets;
+    private LinkedList<KeyValuePair<TKey, TValue>>?[] _buckets;
 
     // Properties
     public int Count { get; private set; }
@@ -27,13 +27,20 @@ public class HashTable<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TV
     public void Add(TKey key, TValue value) {
         if (Count == Capacity) Resize();
         var index = GetKeyIndex(key);
-        _buckets[index].AddLast(new KeyValuePair<TKey, TValue>(key, value));
+        AddAtBucket(ref _buckets[index], new KeyValuePair<TKey, TValue>(key, value));
         Count++;
     }
 
     public bool TryGetValue(TKey key, out TValue? value) {
         var index = GetKeyIndex(key);
-        foreach (var pair in _buckets[index]) {
+        var bucket = _buckets[index];
+
+        if (bucket is null) {
+            value = default;
+            return false;
+        }
+
+        foreach (var pair in bucket) {
             if (!pair.Key.Equals(key)) continue;
             value = pair.Value;
             return true;
@@ -53,13 +60,18 @@ public class HashTable<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TV
     #region Private Methods
 
     private int GetKeyIndex(TKey key, int? divisor = null) =>
-        key.GetHashCode() % (divisor ?? Capacity);
+        Math.Abs(key.GetHashCode()) % (divisor ?? Capacity);
+
+    private static void AddAtBucket(ref LinkedList<KeyValuePair<TKey, TValue>>? bucket, KeyValuePair<TKey, TValue> pair) {
+        bucket ??= [];
+        bucket.AddLast(pair);
+    }
 
     private void Resize() {
-        var newBuckets = new LinkedList<KeyValuePair<TKey, TValue>>[Capacity * _capacityMultiplier];
+        var newBuckets = new LinkedList<KeyValuePair<TKey, TValue>>?[Capacity * _capacityMultiplier];
         foreach (var pair in this) {
             var newIndex = GetKeyIndex(pair.Key, newBuckets.Length);
-            newBuckets[newIndex].AddLast(pair);
+            AddAtBucket(ref newBuckets[newIndex], pair);
         }
 
         _buckets = newBuckets;
@@ -71,6 +83,7 @@ public class HashTable<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TV
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() {
         foreach (var linkedList in _buckets) {
+            if (linkedList is null) continue;
             foreach (var pair in linkedList) {
                 yield return pair;
             }

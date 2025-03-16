@@ -24,7 +24,7 @@ public class HashTableTests {
         table.Add("two", 2);
 
         // Act
-        table.Add("three", 3); // Deve causar o resize
+        table.Add("three", 3); // Triggers resize
 
         // Assert
         Assert.Equal(3, table.Count);
