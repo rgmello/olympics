@@ -1,6 +1,6 @@
 using DataStructures;
 
-namespace Tests;
+namespace Tests.DataStructures;
 
 public class ExpandableArrayTests {
     [Fact]
@@ -9,7 +9,7 @@ public class ExpandableArrayTests {
         var expandableArray = new ExpandableArray<int>(5);
 
         // Assert
-        Assert.Equal(0, expandableArray.Count); // Initially count should be 0
+        Assert.Empty(expandableArray); // Initially it must be empty
     }
 
     [Fact]
