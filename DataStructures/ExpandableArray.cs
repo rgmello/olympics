@@ -2,17 +2,18 @@
 
 namespace DataStructures;
 
-public class ExpandableArray<T> : IEnumerable<T> {
+public class ExpandableArray<T> : IReadOnlyCollection<T> {
     // Fields
     private T[] _array;
     private readonly int _capacityMultiplier;
 
     // Properties
     public int Count { get; private set; }
+    private int Capacity => _array.Length;
 
     // Constructor
-    public ExpandableArray(int initialCapacity = 1, int capacityMultiplier = 2) {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(initialCapacity);
+    public ExpandableArray(int initialCapacity = 0, int capacityMultiplier = 2) {
+        ArgumentOutOfRangeException.ThrowIfNegative(initialCapacity);
         ArgumentOutOfRangeException.ThrowIfLessThan(capacityMultiplier, 2);
 
         _array = new T[initialCapacity];
@@ -36,7 +37,7 @@ public class ExpandableArray<T> : IEnumerable<T> {
     }
 
     public void Add(T item) {
-        if (Count == _array.Length) Resize();
+        if (Count == Capacity) Resize();
         this[Count++] = item;
     }
 
@@ -45,8 +46,8 @@ public class ExpandableArray<T> : IEnumerable<T> {
     #region Private Methods
 
     private void Resize() {
-        var newArray = new T[_array.Length * _capacityMultiplier];
-        for (var i = 0; i < _array.Length; i++)
+        var newArray = new T[Capacity > 0 ? Capacity * _capacityMultiplier : 1];
+        for (var i = 0; i < Count; i++)
             newArray[i] = this[i];
         _array = newArray;
     }
